@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Конструктор расписания (общие преподаватели)</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head><body><main>
+<h1>Конструктор расписания</h1>
+<div class="tabs noprint"><button id="t1" type="button">Расписание</button><button id="t3" class="g" type="button">Кафедры и группы</button><button id="t2" class="g" type="button">Для преподавателей</button><button id="t4" class="g" type="button">Предметы</button><button id="t5" class="g" type="button">Файлы</button></div>
+<div id="tabF" hidden>
+<div class="card"><h2 class="noprint">Файлы</h2><div class="mu noprint u1">Расписание, справочник преподавателей, список групп и предметы хранятся в файлах выбранной папки.</div><div class="row noprint u2"><button class="g" id="dirb" type="button" title="Расписание, справочник и список групп хранятся в файлах этой папки">Импорт из расписания</button><button class="g" id="vyb" type="button" title="Загрузить все выписки кафедр (файлы Excel по шаблону «шаблокн выписки») из папки «выписки»: подпапка папки с файлами программы или любая выбранная папка">Импорт из папки «выписки»</button></div>
+<div class="noprint u3"><div class="mu u4" id="lk"></div><div class="mu u4" id="gk"></div><div class="mu u4" id="pk"></div><div class="mu u4" id="rk"></div><div class="mu u4" id="tk"></div><div class="mu u4" id="vk"></div></div></div>
+</div>
+<div id="tabS">
+
+<div id="addS">
+<div class="card noprint" id="addCard" hidden>
+<div hidden id="oldForm">
+<div class="row u5">
+<label class="f">Кафедра<select id="gd"></select></label>
+<div class="f u6" id="lgp">Специальности<div class="u7" id="gpc"></div><div class="row u8"><button type="button" id="gpall" title="Отметить все образовательные программы">Выбрать все</button><button class="g" type="button" id="gpnone" title="Снять отметки со всех программ (если ничего не отмечено, берутся все программы)">Снять все</button></div><select id="gp" hidden></select></div>
+</div>
+<div class="row">
+<label class="f" id="lgn">Номер группы<select id="gn"></select></label><input type="hidden" id="gr">
+<button id="sga" type="button" title="Добавить выбранную группу в список групп предмета. Потом можно выбрать другую кафедру / программу / группу и добавить ещё.">+ Добавить группу</button>
+
+<button class="g" id="sgd" type="button" title="Убрать выбранную группу (у всех отмеченных программ) из списка групп предмета">Удалить</button></div>
+<div class="row" id="sgbox"><div class="f u9">Группы предмета (занятие добавится всем этим группам)<div class="u10" id="sgl"></div></div></div>
+<div class="row">
+<label class="f">Предмет<select id="sb"></select></label>
+<label class="f">Преподаватель<select id="tc"></select></label>
+<label class="mu u11"><input type="checkbox" id="all"> все предметы и преподаватели</label>
+</div>
+<div class="row" id="sgrow" hidden><textarea class="gt" id="sgt" rows="1" placeholder="Группы через запятую: БИС-11К, БИС-21К" title="Группы, которым ставится этот предмет. По умолчанию — выбранная выше группа или поток."></textarea><select id="sgs"></select></div>
+<div class="ty" id="ty"></div>
+<div class="u12" id="qb" hidden></div>
+<div class="row"><button class="g" id="qadd" type="button" title="Добавить выбранный предмет в набор: для него можно отметить лекции, практики, лабораторные; затем выбрать другой предмет или переключиться между уже добавленными">+ Добавить предмет</button><button class="g" id="qclr" type="button" title="Очистить всё: добавленные группы и предметы">Очистить список</button><span class="mu" id="pv"></span></div></div>
+</div>
+
+</div>
+<div class="card">
+<h2 class="noprint">Расписание</h2>
+<div class="row noprint" id="sfb">
+<label class="f">Кафедра<select id="sfd"></select></label>
+<div class="u21" style="flex:1 1 0;min-width:0">Специальности<div class="u7" id="sfp"></div></div>
+</div>
+<div class="row noprint">
+<label class="f">Преподаватель<select id="sft"></select></label>
+<label class="f">Предмет<select id="sfs"></select></label>
+</div>
+<div class="row noprint"><div class="f u6" id="sfgw">Группы<div class="u7" id="sfgc"></div><div class="row u8" style="margin:0"><select id="sfg"></select><button type="button" id="sfga" title="Отметить все группы выбранных кафедры и специальностей">Выбрать все</button><button class="g" type="button" id="sfgn" title="Снять отметки со всех групп">Снять все</button></div></div></div>
+<div class="row noprint u13">
+<div class="row u2"><button id="add" title="Расставить занятия по данным вкладки «Для преподавателей». Если выбраны кафедра, специальность, группа, преподаватель или предмет, расписание составляется только для них">Добавить в расписание</button><button class="g" id="sfall" type="button" title="Сбросить выбор кафедры, специальности, группы, преподавателя и предмета">Общее</button><button class="g" id="clr">Очистить</button><button class="g" id="prn">Печать</button><button id="sv">Сохранить</button></div>
+</div>
+<div id="warn" class="warn"></div>
+<div class="wrap"><div class="xl" id="xw"><div class="xh" id="xhd"></div><table id="tb"></table></div></div>
+<p class="mu noprint">Таблица как в Excel: слева все группы кафедры/образовательных программ рядом. Кнопка «Добавить в расписание» расставляет занятия по данным вкладки «Для преподавателей». Крестик × в углу убирает одну пару; просто клик по занятию ничего не удаляет. Чтобы перенести пару, перетащи её в другую клетку; если там уже стоит пара, они поменяются местами. Нажми «Сохранить» один раз и выбери файл Excel: дальше расписание записывается в него само (в оформлении как в «1 полугодие Расписание»: лист на кафедру) и загружается при открытии страницы.</p>
+</div>
+</div>
+<div id="tabK" hidden>
+<div class="card noprint"><h2>Кафедра и образовательная программа</h2>
+<div class="row"><label class="f">Кафедра<select id="ed"></select></label>
+<div class="row u18" id="dnw" style="display:none"><label class="f">Новая кафедра<input type="text" id="edn" size="30" placeholder="Название кафедры"></label><button id="eda" type="button">+ Добавить</button><button class="g" id="edx" type="button">Отмена</button></div></div>
+<div hidden><div class="u14" id="es"></div><button id="edd" type="button"></button><button id="esd" type="button"></button></div>
+<div class="row noprint u15" id="rowg"><label class="f u16">Специальность<select class="u17" id="rsp"></select></label>
+<div class="row u18" id="esw" style="display:none"><label class="f">Новая специальность<input type="text" id="esn" size="12" placeholder="БИС"></label><button id="esa" type="button">+ Добавить</button><button class="g" id="esx" type="button">Отмена</button></div>
+<label class="f" id="rgw">Группа<select id="rg"></select></label>
+<label class="f" id="rgnw">Новая группа или подгруппа<span class="row u19"><input type="text" id="rgn" size="10" placeholder="к, вв, номер (51) или имя (Иванов)"><button class="g" id="rga" type="button">+ Создать</button></span></label>
+<button class="g" id="rgd" type="button">Удалить текущую группу</button><button class="g" id="rgdx" type="button" title="Оставить только основные группы: 11, 11С, 21, 21С, 31, 31С, 41 (у всех образовательных программ); остальные удалить вместе с их расписанием">Удалить все, кроме основных</button></div>
+<p class="mu noprint u20">Общая группа для всех образовательных программ (например 21С): выбери в поле «Специальность» пункт «Общие группы», впиши название без дефиса и нажми «+ Создать».</p>
+<div class="row noprint u20"><button id="ksv" type="button" title="Записать справочник преподавателей и список групп в Excel-файлы (справочник — prepodavateli.xlsx, группы — gruppy.xlsx)">Сохранить</button><span class="mu" id="kmsg"></span></div>
+<div hidden><button id="gsv" type="button">Сохранить группы в файл</button><button class="g" id="gld" type="button">Загрузить из файла</button><button class="g" id="gdl" type="button">Скачать копию</button><input type="file" id="gfi" accept=".xlsx" hidden></div>
+
+</div>
+</div>
+
+<div id="tabP" hidden>
+<div class="card noprint"><h2>Предметы</h2>
+<div class="row"><label class="f">Кафедра<select id="ed3"></select></label>
+<div class="u21">Специальности<div class="u7" id="es3"></div></div></div>
+<div class="row u15"><label class="f">Предмет<select id="ps"></select></label>
+<div class="row u18" id="pnw" style="display:none"><label class="f">Новый предмет<input type="text" id="pn" size="30" placeholder="Название предмета"></label>
+<label class="f">Количество кредитов<input class="u22" type="number" id="pnc" min="0" max="30" step="0.5"></label>
+<button id="pna" type="button">+ Добавить предмет</button>
+<button class="g" id="pnx" type="button">Отмена</button></div>
+<label class="f">Кредитов за семестр<input class="u22" type="number" id="pc" min="0" max="30" step="0.5" disabled></label>
+<label class="f">Макс. пар в день<input class="u22" type="number" id="pm" min="1" max="8" step="1" placeholder="2" disabled title="Сколько пар этого предмета можно ставить подряд в один день. Пусто — обычное ограничение (2)."></label><button class="g" id="pd" type="button">Удалить предмет</button></div>
+<div class="row noprint u23"><label class="f">Добавить преподавателя<select id="pta"></select></label><button id="ptb" type="button">+ Добавить преподавателя</button></div>
+<div id="pat" class="u3"></div>
+<div id="pg"></div>
+<div id="pl" class="u3"></div>
+
+<div class="row noprint u24"><button id="psv2" type="button" title="Записать список предметов в Excel-файл (predmety.xlsx)">Сохранить</button><button class="g" id="padd" hidden type="button" title="Расставить в расписании пары этого предмета у выбранного преподавателя или у всех (уже стоящие пары не трогаются)">Добавить в расписание</button><button class="g" id="pclr" type="button" title="Очистить заполнение предмета (занятия и закреплённые группы) у одного преподавателя или у всех">Очистить</button><span class="mu" id="pmsg"></span></div>
+<div hidden><button id="psv" type="button">Сохранить предметы в файл</button><button class="g" id="pld" type="button">Загрузить из файла</button><button class="g" id="pdl" type="button">Скачать копию</button><input type="file" id="pfi" accept=".xlsx" hidden></div>
+</div>
+</div>
+<div id="tabR" hidden>
+<div class="card noprint"><h2>Преподаватели</h2>
+<div class="row"><label class="f">Кафедра<select id="ed2"></select></label>
+<div class="u21">Специальности<div class="u7" id="es2"></div></div></div>
+<div class="row noprint u15"><label class="f">Преподаватель<select id="tsel"></select></label><label class="f" id="tposw">Должность<input type="text" id="tpos" size="24" maxlength="80" placeholder="Должность" list="tposl" autocomplete="off"></label><datalist id="tposl"></datalist><div class="row u18" id="tnw" style="display:none"><label class="f">Новый преподаватель<input type="text" id="tnn" size="22" placeholder="Фамилия И.О. или полное ФИО"></label>
+<label class="f">Должность<input type="text" id="tnp" size="24" maxlength="80" placeholder="Должность" list="tposl" autocomplete="off"></label><button id="tna" type="button">+ Преподаватель</button><button class="g" id="tnx" type="button">Отмена</button></div><span class="u25" id="dsw0"></span><button class="g" id="tdel" type="button">Удалить преподавателя</button></div>
+<div id="tl"></div>
+<div class="row noprint u15"><label class="f" hidden>Кафедра<select id="td"></select></label><button id="rsv" type="button" hidden>Сохранить справочник в файл</button><button class="g" id="tbla" hidden type="button" title="Показать расписание всех преподавателей выбранной кафедры">Для всей кафедры</button><button class="g" id="tadd" hidden type="button" title="Расставить в расписании пары выбранного предмета (или всех предметов) этого преподавателя; уже стоящие пары не трогаются">Добавить в расписание</button><button class="g" id="tclr2" hidden type="button" title="Убрать из расписания все занятия выбранного преподавателя">Очистить расписание</button><button class="g" id="tera" hidden type="button" title="Стереть у выбранного преподавателя все предметы и закреплённые за ними группы. Число лекций, практик и лабораторных сохраняется">Стереть данные</button><button class="g" id="tpr" hidden type="button">Печать</button><button id="tsv" type="button" title="Выбери отдельный Excel-файл: расписание преподавателей будет сохраняться в него само при каждом изменении">Сохранить</button><div hidden><button class="g" id="rld" type="button">Загрузить из файла</button><button class="g" id="rdl" type="button">Скачать копию</button><button class="g" id="rnl" type="button" title="Обновить выбранную кафедру по файлу нагрузки (колонки: Группа, ПЛАТОН, РЕАЛ, ДИСЦИПЛИНА КАЗ/РУС, ГРУППЫ, КР)">Загрузить нагрузку кафедры</button><button id="tdl" type="button" title="Скачать расписание преподавателей (все кафедры) в Excel, в том же оформлении">Скачать Excel</button><input type="file" id="nlf" accept=".xlsx" hidden><input type="file" id="rfi" accept=".xlsx" hidden></div></div><div class="warn u27" id="tmsg"></div>
+</div>
+<datalist id="dl"></datalist>
+<div id="addR"></div>
+<div id="tabT" hidden>
+<div class="card">
+
+<div class="wrap"><div class="xl" id="txw"></div></div></div>
+</div>
+</div>
+</main><div id="pp"></div>
+<script>
+/* диагностика: показывает вверху страницы, какой файл не загрузился или упал */
+window.addEventListener("error",function(e){
+  /* «ResizeObserver loop…» — безвредное браузерное уведомление, не ошибка программы */
+  if(e.message&&/ResizeObserver loop/i.test(e.message)){e.stopImmediatePropagation();e.preventDefault();return}
+  var t=e.target,m;
+  if(t&&t!==window&&t.tagName==="SCRIPT")m="Не загрузился файл: "+t.getAttribute("src")+" (проверь, что он лежит в папке js рядом с index.html)";
+  else if(e.message)m="Ошибка: "+e.message+(e.filename?" ("+String(e.filename).split("/").pop()+":"+e.lineno+")":"");
+  else return;
+  var b=document.getElementById("diagBox");
+  if(!b){b=document.createElement("div");b.id="diagBox";b.style.cssText="position:fixed;left:0;right:0;top:0;z-index:99999;background:#fff3cd;color:#664d03;border-bottom:1px solid #ffda6a;padding:6px 12px;font:13px/1.4 system-ui,sans-serif;white-space:pre-line";(document.body||document.documentElement).appendChild(b)}
+  b.textContent+=(b.textContent?"\n":"")+m;
+},true);
+</script>
+<script src="js/common.js"></script>
+<script src="js/groups.js"></script>
+<script src="js/subjects.js"></script>
+<script src="js/teachers.js"></script>
+<script src="js/schedule.js"></script>
+<script src="js/files.js"></script>
+<script src="js/app.js"></script>
+<script src="js/check.js"></script>
+</body></html>
